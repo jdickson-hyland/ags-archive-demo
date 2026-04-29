@@ -1,6 +1,6 @@
 # Alfresco AGS Filesystem Archive Extension
 
-This project implements a custom **Alfresco Governance Services (AGS) disposition action** that archives records to the local filesystem when an accession step fires in an AGS disposition schedule. It is built on the Alfresco In-Process SDK 4.4 targeting Alfresco Enterprise 25.x.
+This project implements a custom **Alfresco Governance Services (AGS) disposition action** that archives records to the local filesystem when an accession step fires in an AGS disposition schedule. It is built on the Alfresco In-Process SDK 4.11.0 targeting Alfresco Enterprise 25.x.
 
 ## What It Does
 
@@ -27,12 +27,26 @@ ags-archive-demo-platform/
   src/main/resources/
     alfresco/module/ags-archive-demo-platform/
       model/    archive-model.xml                       # archive:archiveStatus aspect definition
-      context/  service-context.xml                     # Spring bean wiring
+      context/  service-context.xml                     # Spring bean wiring (archiveService, archive beans)
+                ui-evaluators-context.xml               # Share action evaluator bean wiring
+                bootstrap-context.xml                   # Data dictionary bootstrap
       messages/ content-model.properties                # Aspect/property labels
       alfresco-global.properties                        # Module property defaults
 ags-archive-demo-platform-docker/
   src/main/docker/
     alfresco-global.properties                          # Docker runtime property overrides
+ags-archive-demo-share/
+  src/main/resources/
+    alfresco/web-extension/
+      ags-archive-demo-share-slingshot-application-context.xml  # Share Spring beans
+      messages/                                         # i18n properties
+      site-data/extensions/                             # Aikau extension config
+      site-webscripts/                                  # Share web scripts
+    META-INF/resources/ags-archive-demo-share/js/      # Client-side JS/CSS
+ags-archive-demo-share-docker/
+  src/main/docker/                                      # Share Docker image config
+ags-archive-demo-integration-tests/
+  src/test/                                             # Integration tests (run against live stack)
 ```
 
 ## Configuration
@@ -41,7 +55,7 @@ The following properties can be overridden in `alfresco-global.properties`:
 
 | Property | Default | Description |
 | --- | --- | --- |
-| `archive.filesystem.root` | `/opt/alfresco/archive` | Root directory for all archived records |
+| `archive.filesystem.root` | `/tmp/archive` | Root directory for all archived records |
 | `archive.include.audit` | `true` | Write an AGS audit snapshot alongside content and metadata |
 | `archive.failOnError` | `true` | Fail the accession step if the filesystem write fails |
 
@@ -115,16 +129,16 @@ Prerequisites: a running Alfresco Enterprise 25.x instance with AGS. Start with 
 
 ```bash
 docker exec -it ags-archive-demo-acs \
-  find /opt/alfresco/archive -type f | sort
+  find /tmp/archive -type f | sort
 ```
 
 Expected output:
 
 ```text
-/opt/alfresco/archive/Test_Category/Test_Folder/{record-identifier}/audit.json
-/opt/alfresco/archive/Test_Category/Test_Folder/{record-identifier}/content.pdf
-/opt/alfresco/archive/Test_Category/Test_Folder/{record-identifier}/disposition.json
-/opt/alfresco/archive/Test_Category/Test_Folder/{record-identifier}/metadata.json
+/tmp/archive/Test_Category/Test_Folder/{record-identifier}/audit.json
+/tmp/archive/Test_Category/Test_Folder/{record-identifier}/content.pdf
+/tmp/archive/Test_Category/Test_Folder/{record-identifier}/disposition.json
+/tmp/archive/Test_Category/Test_Folder/{record-identifier}/metadata.json
 ```
 
 1. Verify the record node has been stamped. In Share, open the record's properties and confirm the **Archive Status** aspect is present with `status = ARCHIVED` and a populated `path`.
