@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <!-- ===== Archive Disposition Beans ===== -->
+
+    <bean id="archiveService" class="org.hyland.archive.service.ArchiveService">
+        <property name="nodeService" ref="NodeService"/>
+        <property name="contentService" ref="ContentService"/>
+        <property name="mimetypeService" ref="mimetypeService"/>
+        <property name="recordsManagementAuditService" ref="recordsManagementAuditService"/>
+        <property name="transactionService" ref="TransactionService"/>
+        <property name="archiveRoot" value="${archive.filesystem.root}"/>
+        <property name="includeAudit" value="${archive.include.audit}"/>
+    </bean>
+
+    <!--
+        Bean id MUST be "archive" — BeanNameAware drives getName(), which must match the
+        action name used in AGS disposition schedule configuration.
+        The inherited init() registers this action with RecordsManagementActionService.
+    -->
+    <bean id="archive"
+          class="org.hyland.archive.action.ArchiveDispositionActionExecuter"
+          init-method="init">
+
+        <!-- Base-class RMActionExecuterAbstractBase / RMDispositionActionExecuterAbstractBase services -->
+        <property name="nodeService" ref="NodeService"/>
+        <property name="contentService" ref="ContentService"/>
+        <property name="actionService" ref="ActionService"/>
+        <property name="dictionaryService" ref="DictionaryService"/>
+        <property name="namespaceService" ref="NamespaceService"/>
+        <property name="transactionService" ref="TransactionService"/>
+        <property name="recordsManagementActionService" ref="recordsManagementActionService"/>
+        <property name="dispositionService" ref="dispositionService"/>
+        <property name="recordService" ref="recordService"/>
+        <property name="recordFolderService" ref="recordFolderService"/>
+        <property name="recordsManagementAuditService" ref="recordsManagementAuditService"/>
+        <property name="recordsManagementAdminService" ref="recordsManagementAdminService"/>
+        <property name="recordsManagementEventService" ref="recordsManagementEventService"/>
+        <property name="vitalRecordService" ref="vitalRecordService"/>
+        <property name="ownableService" ref="OwnableService"/>
+        <property name="freezeService" ref="freezeService"/>
+        <property name="modelSecurityService" ref="modelSecurityService"/>
+        <property name="holdService" ref="holdService"/>
+        <property name="parameterProcessorComponent" ref="parameterProcessorComponent"/>
+        <property name="identifierService" ref="recordsManagementIdentifierService"/>
+
+        <!-- This bean's specific properties -->
+        <property name="archiveService" ref="archiveService"/>
+        <property name="failOnError" value="${archive.failOnError}"/>
+    </bean>
+
+</beans>

@@ -1,0 +1,6 @@
+{
+    "maven.view": "flat",
+    "chat.tools.terminal.autoApprove": {
+        "mkdir": true
+    }
+}

@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:hub.alfresco.com)",
+      "Read(//Users/james.dickson/.m2/repository/org/alfresco/**)",
+      "Bash(jar tf *)",
+      "Bash(docker exec *)",
+      "Bash(xargs -I{} sh -c 'jar tf {} 2>/dev/null | grep -i \"listofvalues\\\\|ListOfValues\" && echo \" ^^ in {}\"')",
+      "Bash(xargs '-I{}' bash -c 'jar tf \"{}\" 2>/dev/null | grep -i \"ListOfValues\" | while read f; do echo \"{}: $f\"; done')",
+      "Bash(mvn clean *)",
+      "Bash(./run.sh reload_acs)",
+      "Bash(mvn package *)",
+      "Read(//Users/james.dickson/.m2/repository/org/mockito/mockito-core/**)",
+      "Bash(jar -tf /Users/james.dickson/projects/alfresco/ags-archive-demo/ags-archive-demo-platform-docker/target/extensions/alfresco-governance-services-community-repo-25.1.1.5-classes.jar)",
+      "Read(//private/tmp/**)",
+      "Bash(mkdir -p ags-extract)",
+      "Bash(jar -xf /Users/james.dickson/projects/alfresco/ags-archive-demo/ags-archive-demo-platform-docker/target/extensions/alfresco-governance-services-community-repo-25.1.1.5-classes.jar -C ags-extract)",
+      "Bash(mkdir -p /tmp/ags-extract)",
+      "Bash(jar -xf /Users/james.dickson/projects/alfresco/ags-archive-demo/ags-archive-demo-platform-docker/target/extensions/alfresco-governance-services-community-repo-25.1.1.5-classes.jar)",
+      "Bash(jar -xvf /Users/james.dickson/projects/alfresco/ags-archive-demo/ags-archive-demo-platform-docker/target/extensions/alfresco-governance-services-community-repo-25.1.1.5-classes.jar)",
+      "Bash(jar -tf /Users/james.dickson/.m2/repository/org/alfresco/alfresco-governance-services-community-repo/25.1.1.5/alfresco-governance-services-community-repo-25.1.1.5-classes.jar)",
+      "Bash(javap -cp /Users/james.dickson/.m2/repository/org/alfresco/alfresco-governance-services-community-repo/25.1.1.5/alfresco-governance-services-community-repo-25.1.1.5-classes.jar org.alfresco.module.org_alfresco_module_rm.action.RMActionExecuterAbstractBase)",
+      "Bash(javap -cp /Users/james.dickson/.m2/repository/org/alfresco/alfresco-governance-services-community-repo/25.1.1.5/alfresco-governance-services-community-repo-25.1.1.5-classes.jar org.alfresco.module.org_alfresco_module_rm.action.PropertySubActionExecuterAbstractBase)",
+      "Bash(grep -v \".lastUpdated\\\\|.sha1\\\\|pom$\")",
+      "Bash(mkdir -p /tmp/ags-amp)",
+      "Bash(cp /Users/james.dickson/.m2/repository/org/alfresco/alfresco-governance-services-enterprise-repo/25.1.1.4/alfresco-governance-services-enterprise-repo-25.1.1.4.amp /tmp/ags-amp/)",
+      "Bash(jar -xf alfresco-governance-services-enterprise-repo-25.1.1.4.amp)"
+    ]
+  }
+}

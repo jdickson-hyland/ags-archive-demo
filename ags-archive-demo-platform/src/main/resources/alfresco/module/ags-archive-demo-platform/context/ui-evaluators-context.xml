@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <!--
+        Registers the "archive" action with JSONConversionComponent so it appears in
+        rmNode.actions for records and record folders.  The Share-side ActionEvaluator
+        (evaluator.rm.action.archive) checks for this name in rmNode.actions.
+
+        TrueEvaluator (inherited from jsonConversionComponent.baseAction) always passes
+        the evaluateImpl check; the action will appear on any RECORD or RECORD_FOLDER
+        node.  Server-side disposition schedule validation prevents execution when archive
+        is not the next eligible step.
+    -->
+    <bean id="jsonConversionComponent.archiveAction"
+          parent="jsonConversionComponent.baseAction">
+        <property name="name" value="archive"/>
+        <property name="kinds">
+            <set>
+                <value>RECORD</value>
+                <value>RECORD_FOLDER</value>
+            </set>
+        </property>
+    </bean>
+
+</beans>

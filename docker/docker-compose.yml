@@ -1,0 +1,169 @@
+services:
+  ags-archive-demo-share:
+    image: alfresco-share-ags-archive-demo:development
+    build:
+      dockerfile: ./Dockerfile
+      context: ../../../ags-archive-demo-share-docker/target
+    environment:
+      CATALINA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8888"
+      REPO_HOST: ags-archive-demo-acs
+      REPO_PORT: 8080
+    ports:
+      - "${share.port}:8080"
+      - "${share.debug.port}:8888"
+
+  ags-archive-demo-acs:
+    image: alfresco-content-services-ags-archive-demo:development
+    build:
+      dockerfile: ./Dockerfile
+      context: ../../../ags-archive-demo-platform-docker/target
+    environment:
+      JAVA_TOOL_OPTIONS: "${keystore.settings}"
+      JAVA_OPTS: "
+        -Dmessaging.broker.url=\"failover:(nio://ags-archive-demo-activemq:61616)?timeout=3000&jms.useCompression=true\"
+        -Dindex.subsystem.name=elasticsearch
+        -Delasticsearch.indexName=alfresco
+        -Delasticsearch.host=elasticsearch
+        -Delasticsearch.port=9200
+        -Delasticsearch.baseUrl=/
+        -Delasticsearch.createIndexIfNotExists=true
+        -Dtransform.service.enabled=true
+        -Dtransform.service.url=http://ags-archive-demo-transform-core-aio:8090/
+        -Dsfs.url=http://ags-archive-demo-shared-file-store:8099/
+        "
+      CATALINA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8888"
+    ports:
+      - "${acs.port}:8080"
+      - "${acs.debug.port}:8888"
+    volumes:
+      - ags-archive-demo-acs-volume:/usr/local/tomcat/alf_data
+    depends_on:
+      - ags-archive-demo-postgres
+      - ags-archive-demo-activemq
+      - elasticsearch
+
+  ags-archive-demo-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: alfresco
+      POSTGRES_USER: alfresco
+      POSTGRES_PASSWORD: alfresco
+    command: postgres -c max_connections=300 -c log_min_messages=LOG
+    ports:
+      - "${postgres.port}:5432"
+    volumes:
+      - ags-archive-demo-db-volume:/var/lib/postgresql/data
+
+  elasticsearch:
+    image: elasticsearch:8.17.10
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "9200:9200"
+    volumes:
+      - ags-archive-demo-es-volume:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\\(green\\|yellow\\)'"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  ags-archive-demo-transform-core-aio:
+    image: alfresco/alfresco-transform-core-aio:5.4.1
+    mem_limit: 1536m
+    environment:
+      ACTIVEMQ_URL: nio://ags-archive-demo-activemq:61616
+      FILE_STORE_URL: http://ags-archive-demo-shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file
+    ports:
+      - "8090:8090"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/actuator/health"]
+      interval: 20s
+      timeout: 2s
+      retries: 3
+      start_period: 20s
+
+  ags-archive-demo-shared-file-store:
+    image: quay.io/alfresco/alfresco-shared-file-store:4.4.1
+    mem_limit: 512m
+    environment:
+      scheduler.content.age.millis: 86400000
+      scheduler.cleanup.interval: 86400000
+    ports:
+      - "8099:8099"
+    volumes:
+      - ags-archive-demo-sfs-volume:/tmp/Alfresco
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8099/actuator/health"]
+      interval: 20s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+
+  ags-archive-demo-search:
+    image: quay.io/alfresco/alfresco-elasticsearch-live-indexing:5.5.0
+    mem_limit: 1g
+    environment:
+      ALFRESCO_ACCEPTED_CONTENT_MEDIA_TYPES_CACHE_BASE_URL: >-
+        http://ags-archive-demo-transform-core-aio:8090/transform/config
+      ALFRESCO_SHAREDFILESTORE_BASEURL: >-
+        http://ags-archive-demo-shared-file-store:8099/alfresco/api/-default-/private/sfs/versions/1/file/
+      SPRING_ACTIVEMQ_BROKERURL: nio://ags-archive-demo-activemq:61616
+      SPRING_ELASTICSEARCH_REST_URIS: http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      ags-archive-demo-transform-core-aio:
+        condition: service_healthy
+      ags-archive-demo-shared-file-store:
+        condition: service_healthy
+
+  ags-archive-demo-search-reindexing:
+    image: quay.io/alfresco/alfresco-elasticsearch-reindexing:5.5.0
+    mem_limit: 1g
+    restart: on-failure:5
+    environment:
+      ALFRESCO_ACCEPTED_CONTENT_MEDIA_TYPES_CACHE_BASE_URL: >-
+        http://ags-archive-demo-transform-core-aio:8090/transform/config
+      SPRING_ACTIVEMQ_BROKERURL: nio://ags-archive-demo-activemq:61616
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ags-archive-demo-postgres:5432/alfresco
+      SPRING_DATASOURCE_USERNAME: alfresco
+      SPRING_DATASOURCE_PASSWORD: alfresco
+      SPRING_ELASTICSEARCH_REST_URIS: http://elasticsearch:9200
+    depends_on:
+      ags-archive-demo-postgres:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      ags-archive-demo-acs:
+        condition: service_started
+
+  ags-archive-demo-activemq:
+    image: alfresco/alfresco-activemq:5.19.5-jre17-rockylinux8
+    mem_limit: 1g
+    ports:
+      - 8161:8161 # Web Console
+      - 5672:5672 # AMQP
+      - 61616:61616 # OpenWire
+      - 61613:61613 # STOMP
+
+volumes:
+  ags-archive-demo-acs-volume:
+    external: true
+  ags-archive-demo-db-volume:
+    external: true
+  ags-archive-demo-es-volume:
+    external: true
+  ags-archive-demo-sfs-volume:
+    external: true

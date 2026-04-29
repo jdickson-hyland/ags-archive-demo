@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="archive:archiveModel"
+       xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+    <description>Archive Disposition Model</description>
+    <author>Hyland</author>
+    <version>1.0</version>
+
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+    </imports>
+
+    <namespaces>
+        <namespace uri="http://www.hyland.com/model/archive/1.0" prefix="archive"/>
+    </namespaces>
+
+    <aspects>
+        <aspect name="archive:archiveStatus">
+            <title>Archive Status</title>
+            <description>Marks a record as having been archived to the filesystem</description>
+            <properties>
+                <property name="archive:status">
+                    <title>Archive Status</title>
+                    <type>d:text</type>
+                </property>
+                <property name="archive:path">
+                    <title>Archive Path</title>
+                    <type>d:text</type>
+                </property>
+            </properties>
+        </aspect>
+    </aspects>
+
+</model>
