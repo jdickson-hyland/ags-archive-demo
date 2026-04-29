@@ -122,8 +122,7 @@ Prerequisites: a running Alfresco Enterprise 25.x instance with AGS. Start with 
 1. Inside it, create a **Record Folder** (e.g. `Test Folder`).
 1. Upload a file to the folder and **Declare** it as a record.
 1. On the Record Category, open **Edit Disposition Schedule** and add a disposition step:
-   - Action: **Accession**
-   - Set the step to use action name `archive`
+   - Action: **Archive**
 1. Process the disposition step (either via the scheduled job or by triggering it manually from the record folder's actions menu).
 1. Verify the output on the ACS container filesystem:
 
