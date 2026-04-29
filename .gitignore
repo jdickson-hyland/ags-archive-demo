@@ -39,8 +39,7 @@ tmp/
 !.vscode/extensions.json
 
 # Claude Code
-.claude/*
-!.claude/settings.json
+.claude/
 
 # macOS
 *.DS_Store
