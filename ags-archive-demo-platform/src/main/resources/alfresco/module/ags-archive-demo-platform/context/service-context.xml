@@ -22,7 +22,8 @@
 
     <!-- ===== Archive Disposition Beans ===== -->
 
-    <bean id="archiveService" class="org.hyland.archive.service.ArchiveService">
+    <bean id="archiveService" class="org.hyland.archive.service.ArchiveService"
+          init-method="init">
         <property name="nodeService" ref="NodeService"/>
         <property name="contentService" ref="ContentService"/>
         <property name="mimetypeService" ref="mimetypeService"/>
